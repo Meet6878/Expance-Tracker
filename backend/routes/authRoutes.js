@@ -35,6 +35,6 @@ const authRoute = express.Router();
 
 authRoute.post("/register", RegisterController);
 authRoute.post("/login", LoginController);
-authRoute.get("/logout", LogoutController);
+authRoute.post("/logout", LogoutController);
 
 module.exports = authRoute;

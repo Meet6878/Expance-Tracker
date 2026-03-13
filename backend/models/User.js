@@ -33,9 +33,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Indexes for query optimization
-// userSchema.index({ firebaseUid: 1 });
-// userSchema.index({ email: 1 });
 userSchema.index({ createdAt: -1 });
 
-module.export = mongoose.model("User", userSchema); 
+module.exports = mongoose.model("User", userSchema);

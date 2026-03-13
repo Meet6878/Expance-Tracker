@@ -216,9 +216,9 @@ const RegisterController = async (req, res) => {
     const { email, password, role } = req.body;
     const user = await User.findOne({ email });
     if (user) {
-      return res.status(400).send({ message: "user already exsit" });
+      return res.status(400).send({ message: "user already exist" });
     }
-    const hashPassword = await bcrypt.genSaltSync(password, 10);
+    const hashPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name: email.split("@")[0],
       email,
@@ -257,9 +257,13 @@ const LoginController = async (req, res) => {
       });
     }
 
-    const token = await jwt.sign(user, process.env.JWT_SECRET, {
-      expiresIn: "30d",
-    });
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "30d",
+      },
+    );
     res.cookie("token", token, {
       httpOnly: true,
       secure: false, // true in production (HTTPS)
