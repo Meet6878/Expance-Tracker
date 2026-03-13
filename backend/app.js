@@ -28,10 +28,12 @@ app.get("/api/health", (req, res) => {
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import expenseRoutes from "./routes/expenseRoutes.js";
+import categoryRoute from "./routes/categoryRoute.js";
 
 // Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api/expenses", expenseRoutes);
+app.use("/api/categories", categoryRoute);
 
 // 404 handler
 app.use((req, res) => {

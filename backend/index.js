@@ -8,6 +8,9 @@ const { logger } = require("./middleware/logger");
 const { errorHandler } = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/authRoutes");
+const categoryRoute = require("./routes/categoryRoute");
+
+
 
 dotenv.config();
 
@@ -26,6 +29,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 8080;
 
 app.use("/api/auth", authRoute);
+app.use("/api/categories", categoryRoute);
 
 app.listen(PORT, () => {
   console.log("server is running on ", PORT);
