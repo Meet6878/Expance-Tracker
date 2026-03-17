@@ -32,13 +32,14 @@ const {
   updateCategory,
   deleteCategory,
 } = require("../contollers/categoryController.js");
+const { protect } = require("../middleware/auth.js");
 
 const categoryRoute = express.Router();
 
 categoryRoute.get("/", getAllCategories);
 categoryRoute.get("/:id", getCategoryById);
-categoryRoute.post("/Create", createCategory);
-categoryRoute.put("/update/:id", updateCategory);
-categoryRoute.delete("/Category/:id", deleteCategory);
+categoryRoute.post("/Create",protect, createCategory);
+categoryRoute.put("/update/:id", protect, updateCategory);
+categoryRoute.delete("/Category/:id", protect, deleteCategory);
 
 module.exports = categoryRoute;

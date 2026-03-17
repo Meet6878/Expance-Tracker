@@ -76,7 +76,7 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, icon } = req.body;
+    const { name, icon, type } = req.body;
     const category = await Category.findById(id);
     if (!category) {
       return res.status(404).send({
@@ -96,7 +96,7 @@ const updateCategory = async (req, res) => {
     }
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
-      { name, icon },
+      { name, ...req.body },
       { new: true, runValidators: true },
     );
     return res.status(200).send({

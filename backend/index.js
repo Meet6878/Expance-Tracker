@@ -9,6 +9,8 @@ const { errorHandler } = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/authRoutes");
 const categoryRoute = require("./routes/categoryRoute");
+const transectionRouter = require("./routes/transetionRoutes");
+const budgetRouter = require("./routes/budgetRoute");
 
 
 
@@ -30,6 +32,8 @@ const PORT = process.env.PORT || 8080;
 
 app.use("/api/auth", authRoute);
 app.use("/api/categories", categoryRoute);
+app.use("/api/transactions", transectionRouter);
+app.use("/api/budgets", budgetRouter);
 
 app.listen(PORT, () => {
   console.log("server is running on ", PORT);
