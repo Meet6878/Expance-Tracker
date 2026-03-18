@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema(
   {
@@ -32,6 +32,7 @@ const transactionSchema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
+      default: Date.now,
     },
     notes: {
       type: String,

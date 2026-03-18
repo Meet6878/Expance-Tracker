@@ -1,9 +1,13 @@
 const express = require("express");
+const { getTransection, createTransaction } = require("../contollers/transectionController");
+const { protect } = require("../middleware/auth");
 
-const app = express();
+
 
 const transectionRouter = express.Router();
+transectionRouter.use(protect);
+transectionRouter.get("/", getTransection);
+transectionRouter.post("/create", createTransaction);
 
-// transectionRouter.get("/", )
 
 module.exports = transectionRouter;
