@@ -50,7 +50,9 @@ const jwt = require("jsonwebtoken");
 
 const protect = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split("Bearer ")[1];
+    const token =
+      req.cookies.token || req.headers.authorization?.split("Bearer ")[1];
+    // const token = req.headers.authorization?.split("Bearer ")[1];
     if (!token) {
       return res.status(401).send({ message: "not authorize" });
     }
@@ -58,7 +60,7 @@ const protect = async (req, res, next) => {
     if (!decode) {
       return res.status(401).send({ message: "invalid token" });
     }
-
+    // console.log("decode", decode);
     req.user = decode;
     next();
   } catch (error) {

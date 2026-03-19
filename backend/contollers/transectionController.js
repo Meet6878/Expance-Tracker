@@ -99,7 +99,46 @@ const createTransaction = async (req, res) => {
   }
 };
 
+const updateTransaction = async (req, res) => {
+  const { category, type, ...otherData } = req.body;
+
+  if (category || type) {
+    const cat = await Category.findById(category || req.body.category);
+
+    if (!cat || cat.type !== (type || req.body.type)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid category for this type" });
+    }
+  }
+
+  const transaction = await Transaction.findOneAndUpdate(
+    { _id: req.params.id, user: req.user.id },
+    { ...otherData, category, type },
+    { new: true },
+  ).populate("category", "name icon");
+
+  if (!transaction)
+    return res.status(404).json({ message: "Transaction not found" });
+
+  res.json(transaction);
+};
+
+const deleteTransaction = async (req, res) => {
+  const transaction = await Transaction.findOneAndDelete({
+    _id: req.params.id,
+    user: req.user.id,
+  });
+
+  if (!transaction)
+    return res.status(404).json({ message: "Transaction not found" });
+
+  res.json({ message: "Deleted" });
+};
+
 module.exports = {
   getTransection,
   createTransaction,
+  updateTransaction,
+  deleteTransaction,
 };
