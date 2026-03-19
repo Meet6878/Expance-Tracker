@@ -1,7 +1,8 @@
 const Transaction = require("../models/Transaction");
+const mongoose = require("mongoose");
 const getDashboardStats = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = new mongoose.Types.ObjectId(req.user.id);
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
