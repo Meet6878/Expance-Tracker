@@ -69,4 +69,21 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+const getRole = async (req, res, next) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    const role = user.role || "user"; 
+    if (role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+    next();
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ message: "Failed to get user role", error: error.message });
+  }
+}
+
+module.exports = { protect, getRole };

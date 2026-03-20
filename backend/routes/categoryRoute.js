@@ -36,10 +36,10 @@ const { protect } = require("../middleware/auth.js");
 
 const categoryRoute = express.Router();
 
-categoryRoute.get("/", getAllCategories);
-categoryRoute.get("/:id", getCategoryById);
-categoryRoute.post("/Create",protect, createCategory);
+categoryRoute.get("/", protect, getAllCategories);
+categoryRoute.get("/:id", protect, getCategoryById);
+categoryRoute.post("/Create", protect, createCategory);
 categoryRoute.put("/update/:id", protect, updateCategory);
-categoryRoute.delete("/Category/:id", protect, deleteCategory);
+categoryRoute.delete("/delete/:id", protect, deleteCategory);
 
 module.exports = categoryRoute;

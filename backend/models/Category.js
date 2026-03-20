@@ -20,4 +20,13 @@ const CategorySchema = new mongoose.Schema(
 );
 CategorySchema.index({ createdAt: -1 });
 
+CategorySchema.pre("findOneAndDelete", async function () {
+  const category = await this.model.findOne(this.getFilter());
+
+  if (category) {
+    const Transaction = require("./Transaction");
+    await Transaction.deleteMany({ category: category._id });
+  }
+});
+
 module.exports = mongoose.model("Category", CategorySchema);
