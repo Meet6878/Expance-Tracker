@@ -5,6 +5,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { asyncHandler } = require("../middleware/errorHandler");
 // // Register or Login with Firebase
 // // export const authenticateWithFirebase = async (req, res) => {
 // //   try {
@@ -211,12 +212,14 @@ const jwt = require("jsonwebtoken");
 //   }
 // };
 
-const RegisterController = async (req, res) => {
+const RegisterController = asyncHandler(async (req, res) => {
   try {
     const { email, password, role } = req.body;
     const user = await User.findOne({ email });
     if (user) {
-      return res.status(400).send({ message: "user already exist" });
+      const err = new Error("User already exists");
+      err.status = 400;
+      throw err;
     }
     const hashPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
@@ -232,29 +235,26 @@ const RegisterController = async (req, res) => {
       user: newUser,
     });
   } catch (error) {
-    console.log("error", error);
-    return res.status(400).send({ message: "error while register" });
+    throw error;
   }
-};
+});
 
-const LoginController = async (req, res) => {
+const LoginController = asyncHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).send({
-        success: false,
-        message: "User not found",
-      });
+      const err = new Error("User not found");
+      err.status = 404;
+      throw err;
     }
 
     const comparePassword = await bcrypt.compare(password, user.password);
 
     if (!comparePassword) {
-      return res.status(400).send({
-        success: false,
-        message: "Invalid password",
-      });
+      const err = new Error("Invalid password");
+      err.status = 401;
+      throw err;
     }
 
     const token = jwt.sign(
@@ -282,12 +282,11 @@ const LoginController = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.log("error", error);
-    return res.status(400).send({ message: "error while login" });
+    throw error;
   }
-};
+});
 
-const LogoutController = async (req, res) => {
+const LogoutController = asyncHandler(async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
@@ -299,13 +298,8 @@ const LogoutController = async (req, res) => {
       message: "Logout successful",
     });
   } catch (error) {
-    console.log("logout error", error);
-
-    return res.status(500).send({
-      success: false,
-      message: "Error while logout",
-    });
+    throw error;
   }
-};
+});
 
 module.exports = { RegisterController, LoginController, LogoutController };
