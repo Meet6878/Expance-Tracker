@@ -20,14 +20,13 @@ dotenv.config();
 const app = express();
 
 DBconn();
-
+app.use(express.json());
 app.use(helmat());
 app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(morgan("dev"));
-app.use(express.json());
 app.use(logger);
-app.use(errorHandler);
+
 
 const PORT = process.env.PORT || 8080;
 
@@ -37,6 +36,8 @@ app.use("/api/transactions", limiter, transectionRouter);
 app.use("/api/budgets", budgetRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/logs", logRouter);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log("server is running on ", PORT);

@@ -1,150 +1,116 @@
 const Budget = require("../models/Budget");
 const Category = require("../models/Category");
+const { asyncHandler } = require("../middleware/errorHandler");
 
-const getBuedgetByCategory = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    // console.log("User ID from request:", req.user);
-    const { categoryId } = req.params;
-    const budget = await Budget.findOne({
-      user: userId,
-      category: categoryId,
-    }).populate("category", "name");
-    if (!budget) {
-      return res.status(404).json({
-        success: false,
-        message: "Budget not found for this category",
-      });
-    }
-    res.status(200).json({
-      success: true,
-      message: "Budget retrieved successfully",
-      data: budget,
-    });
-  } catch (error) {
-    console.error("Get budget error:", error);
-    res.status(500).json({
-      message: "Failed to get budget",
-      error: error.message,
-    });
+const getBuedgetByCategory = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { categoryId } = req.params;
+  const budget = await Budget.findOne({
+    user: userId,
+    category: categoryId,
+  }).populate("category", "name");
+  
+  if (!budget) {
+    const err = new Error("Budget not found for this category");
+    err.status = 404;
+    throw err;
   }
-};
+  
+  res.status(200).json({
+    success: true,
+    message: "Budget retrieved successfully",
+    data: budget,
+  });
+});
 
-const createBudget = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { category, limit } = req.body;
+const createBudget = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { category, limit } = req.body;
 
-    if (!category || !limit) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Category and limit are required" });
-    }
-    if (limit <= 0) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Limit must be a positive number" });
-    }
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
-    }
-
-    const existingBudget = await Budget.findOne({ user: userId, category });
-    if (existingBudget) {
-      return res.status(400).json({
-        success: false,
-        message: "Budget for this category already exists",
-        data: existingBudget,
-      });
-    }
-
-    const newBudget = new Budget({
-      user: userId,
-      category,
-      limit,
-    });
-    await newBudget.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Budget created successfully",
-      data: newBudget,
-    });
-  } catch (error) {
-    console.error("Create budget error:", error);
-    res.status(500).json({
-      message: "Failed to create budget",
-      error: error.message,
-    });
+  if (!category || !limit) {
+    const err = new Error("Category and limit are required");
+    err.status = 400;
+    throw err;
   }
-};
-
-const updateBudget = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { id } = req.params;
-    const { limit } = req.body;
-
-    const budget = await Budget.findOneAndUpdate(
-      { _id: id, user: userId },
-      { limit },
-      { new: true, runValidators: true },
-    );
-
-    if (!budget) {
-      return res.status(404).json({
-        success: false,
-        message: "Budget not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Budget updated successfully",
-      data: budget,
-    });
-  } catch (error) {
-    console.error("Update budget error:", error);
-    res.status(500).json({
-      message: "Failed to update budget",
-      error: error.message,
-    });
+  
+  if (limit <= 0) {
+    const err = new Error("Limit must be a positive number");
+    err.status = 400;
+    throw err;
   }
-};
-
-const deleteBudget = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { id } = req.params;
-
-    const budget = await Budget.findOneAndDelete({
-      _id: id,
-      user: userId,
-    });
-
-    if (!budget) {
-      return res.status(404).json({
-        success: false,
-        message: "Budget not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Budget deleted successfully",
-    });
-  } catch (error) {
-    console.error("Delete budget error:", error);
-    res.status(500).json({
-      message: "Failed to delete budget",
-      error: error.message,
-    });
+  
+  const categoryExists = await Category.findById(category);
+  if (!categoryExists) {
+    const err = new Error("Category not found");
+    err.status = 404;
+    throw err;
   }
-};
+
+  const existingBudget = await Budget.findOne({ user: userId, category });
+  if (existingBudget) {
+    const err = new Error("Budget for this category already exists");
+    err.status = 400;
+    throw err;
+  }
+
+  const newBudget = new Budget({
+    user: userId,
+    category,
+    limit,
+  });
+  await newBudget.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Budget created successfully",
+    data: newBudget,
+  });
+});
+
+const updateBudget = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+  const { limit } = req.body;
+
+  const budget = await Budget.findOneAndUpdate(
+    { _id: id, user: userId },
+    { limit },
+    { new: true, runValidators: true },
+  );
+
+  if (!budget) {
+    const err = new Error("Budget not found");
+    err.status = 404;
+    throw err;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Budget updated successfully",
+    data: budget,
+  });
+});
+
+const deleteBudget = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+
+  const budget = await Budget.findOneAndDelete({
+    _id: id,
+    user: userId,
+  });
+
+  if (!budget) {
+    const err = new Error("Budget not found");
+    err.status = 404;
+    throw err;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Budget deleted successfully",
+  });
+});
 
 module.exports = {
   getBuedgetByCategory,

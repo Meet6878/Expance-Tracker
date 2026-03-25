@@ -5,6 +5,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { asyncHandler } = require("../middleware/errorHandler");
 // // Register or Login with Firebase
 // // export const authenticateWithFirebase = async (req, res) => {
 // //   try {
@@ -211,12 +212,14 @@ const jwt = require("jsonwebtoken");
 //   }
 // };
 
-const RegisterController = async (req, res) => {
-  try {
+const RegisterController = asyncHandler( async (req, res) => {
+
     const { email, password, role } = req.body;
     const user = await User.findOne({ email });
     if (user) {
-      return res.status(400).send({ message: "user already exist" });
+      const err = new Error("User already exists");
+      err.status = 400;
+      throw err;
     }
     const hashPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
@@ -231,81 +234,62 @@ const RegisterController = async (req, res) => {
       message: "User registered successfully",
       user: newUser,
     });
-  } catch (error) {
-    console.log("error", error);
-    return res.status(400).send({ message: "error while register" });
+});
+
+const LoginController = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  
+  if (!user) {
+    const err = new Error("User not found");
+    err.status = 400;
+    throw err;
   }
-};
 
-const LoginController = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).send({
-        success: false,
-        message: "User not found",
-      });
-    }
+  const comparePassword = await bcrypt.compare(password, user.password);
 
-    const comparePassword = await bcrypt.compare(password, user.password);
-
-    if (!comparePassword) {
-      return res.status(400).send({
-        success: false,
-        message: "Invalid password",
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "30d",
-      },
-    );
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "development" ? false : true, // true in production (HTTPS)
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-
-    return res.status(200).send({
-      success: true,
-      message: "Login successful",
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-      },
-      token,
-    });
-  } catch (error) {
-    console.log("error", error);
-    return res.status(400).send({ message: "error while login" });
+  if (!comparePassword) {
+    const err = new Error("Invalid password");
+    err.status = 400;
+    throw err;
   }
-};
 
-const LogoutController = async (req, res) => {
-  try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: false, // true in production
-    });
+  const token = jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "30d",
+    },
+  );
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "development" ? false : true,
+    sameSite: "strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
 
-    return res.status(200).send({
-      success: true,
-      message: "Logout successful",
-    });
-  } catch (error) {
-    console.log("logout error", error);
+  res.status(200).send({
+    success: true,
+    message: "Login successful",
+    user: {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    },
+    token,
+  });
+});
 
-    return res.status(500).send({
-      success: false,
-      message: "Error while logout",
-    });
-  }
-};
+const LogoutController = asyncHandler(async (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false,
+  });
+
+  res.status(200).send({
+    success: true,
+    message: "Logout successful",
+  });
+});
 
 module.exports = { RegisterController, LoginController, LogoutController };

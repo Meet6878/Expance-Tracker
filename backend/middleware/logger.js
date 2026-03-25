@@ -4,7 +4,7 @@ const ErrorLog = require("../models/ErrorLog");
 const logger = (req, res, next) => {
   const start = Date.now();
 
-  res.on("finish", async () => {
+  res.on("close", async () => {
     const duration = Date.now() - start;
     const level =
       res.statusCode >= 500
@@ -29,7 +29,7 @@ const logger = (req, res, next) => {
 
     // Persist only warning/error responses to avoid DB noise
     if (level !== "info") {
-     await ErrorLog.create(logPayload).catch((err) => {
+      await ErrorLog.create(logPayload).catch((err) => {
         console.error("Error saving ErrorLog:", err);
       });
     }
